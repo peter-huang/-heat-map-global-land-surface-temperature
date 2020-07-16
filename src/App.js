@@ -6,6 +6,21 @@ import * as d3 from "d3";
 const JSON_URL =
   "https://raw.githubusercontent.com/freeCodeCamp/ProjectReferenceData/master/global-temperature.json";
 
+const MONTHS = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
+
 function App() {
   const [data, setHeatMapData] = useState([]);
 
@@ -66,17 +81,24 @@ function HeatMap({ data }) {
       height: 400 + padding.top + padding.bottom,
     };
 
+    const xAxisFactor = {
+      top: 0,
+      right: 0,
+      bottom: 0,
+      left: 3,
+    };
+
     const minYear = d3.min(data.monthlyVariance, (d) => d.year);
     const maxYear = d3.max(data.monthlyVariance, (d) => d.year);
 
-    // Setting up graph
+    // Graph Titles
     d3.select("#heatmap")
       .append("div")
       .attr("id", "title")
       .text("Monthly Global Land-Surface Temperature");
     d3.select("#title")
       .append("div")
-      .attr("id", "subtitle")
+      .attr("id", "description")
       .text(
         minYear +
           " -  " +
@@ -86,11 +108,50 @@ function HeatMap({ data }) {
           "℃"
       );
 
+    // SVG setup
     const svg = d3
       .select("#heatmap")
       .append("svg")
       .attr("width", dim.width)
       .attr("height", dim.height);
+
+    // Scales
+    const xScale = d3.scaleLinear();
+    xScale.domain([minYear, maxYear]);
+    xScale.range([padding.left * xAxisFactor.left, dim.width - padding.right]);
+
+    const yScale = d3.scaleLinear();
+    yScale.domain([
+      d3.min(data.monthlyVariance, (d) => d.month),
+      d3.max(data.monthlyVariance, (d) => d.month),
+    ]);
+    yScale.range([dim.height - padding.bottom, padding.top]);
+
+    // X-Axis
+    const xAxis = d3.axisBottom(xScale).tickFormat(d3.format("d"));
+    svg
+      .append("g")
+      .attr("id", "x-axis")
+      .attr("transform", "translate(0," + (dim.height - padding.bottom) + ")")
+      .call(xAxis);
+
+    // Y-Axis
+    const yAxis = d3.axisLeft(yScale).tickFormat((d, i) => {
+      return MONTHS[i - 1];
+    });
+    svg
+      .append("g")
+      .attr("id", "y-axis")
+      .attr("transform", "translate(" + padding.left * xAxisFactor.left + ",0)")
+      .call(yAxis);
+    d3.selectAll("#y-axis .tick line").each(() => {
+      console.log("here");
+      /*
+      d3.select(this).attr(
+        "transform",
+        "translate(0," + yScale.bandwidth() / 2 + ")"
+      );*/
+    });
   };
 
   return (

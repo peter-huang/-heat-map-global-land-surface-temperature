@@ -44,7 +44,7 @@ body {
   font-weight: bold;
 }
 
-#heatmap #title #subtitle {
+#heatmap #title #description {
   font-size: 0.75em !important;
   font-weight: normal !important;
 }
