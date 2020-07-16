@@ -7,7 +7,7 @@ I can use any mix of HTML, JavaScript, CSS, Bootstrap, SASS, React, Redux, D3.js
 
 **User Story #1:** Shows the global land surface temperatures from a remote JSON source file.
 
-**User Story #2:** Eact heat map element will show additional temperature on hover.
+**User Story #2:** Eact heat map element will show additional information on hover.
 
 ## Getting Started
 
