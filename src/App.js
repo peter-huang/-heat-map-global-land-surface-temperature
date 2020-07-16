@@ -9,7 +9,23 @@ const JSON_URL =
 function App() {
   const [data, setHeatMapData] = useState([]);
 
-  useEffect(setHeatMapData, []);
+  const getData = (url) => {
+    const req = new XMLHttpRequest();
+    req.open("GET", url, true);
+    req.onreadystatechange = () => {
+      if (req.readyState == 4 && req.status == 200) {
+        const tempData = JSON.parse(req.responseText);
+
+        setHeatMapData(tempData);
+      }
+    };
+    req.send();
+  };
+
+  useEffect(() => {
+    getData(JSON_URL);
+  }, []);
+
   return (
     <div class="container h-100">
       <div class="row h-100">
@@ -30,7 +46,53 @@ function App() {
   );
 }
 
-function HeatMap() {
+function HeatMap({ data }) {
+  useEffect(() => {
+    if (data["monthlyVariance"] != null) {
+      drawHeatMap(data);
+    }
+  }, [data]);
+
+  const drawHeatMap = (data) => {
+    const padding = {
+      top: 50,
+      right: 25,
+      bottom: 50,
+      left: 25,
+    };
+
+    const dim = {
+      width: 800 + padding.left + padding.right,
+      height: 400 + padding.top + padding.bottom,
+    };
+
+    const minYear = d3.min(data.monthlyVariance, (d) => d.year);
+    const maxYear = d3.max(data.monthlyVariance, (d) => d.year);
+
+    // Setting up graph
+    d3.select("#heatmap")
+      .append("div")
+      .attr("id", "title")
+      .text("Monthly Global Land-Surface Temperature");
+    d3.select("#title")
+      .append("div")
+      .attr("id", "subtitle")
+      .text(
+        minYear +
+          " -  " +
+          maxYear +
+          ": base temperature " +
+          data.baseTemperature +
+          "℃"
+      );
+
+    const svg = d3
+      .select("#heatmap")
+      .append("svg")
+      .attr("width", dim.width)
+      .attr("height", dim.height);
+  };
+
   return (
     <div id="heatmap-container">
       <div id="heatmap"></div>
