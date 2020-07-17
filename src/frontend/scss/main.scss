@@ -85,5 +85,16 @@ body {
   }
 
   svg {
+    #y-axis {
+      .tick {
+        line {
+          fill: red;
+        }
+      }
+    }
+
+    .cell {
+      fill: grey;
+    }
   }
 }

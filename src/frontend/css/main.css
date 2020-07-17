@@ -48,4 +48,12 @@ body {
   font-size: 0.75em !important;
   font-weight: normal !important;
 }
+
+#heatmap svg #y-axis .tick line {
+  fill: red;
+}
+
+#heatmap svg .cell {
+  fill: grey;
+}
 /*# sourceMappingURL=main.css.map */
