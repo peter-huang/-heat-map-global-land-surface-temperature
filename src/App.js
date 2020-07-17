@@ -33,6 +33,10 @@ const HEAT_COLOR = [
   "#EA0909",
 ];
 
+const formatNum = (num, decimalPlaces) => {
+  return Math.floor(num * decimalPlaces) / decimalPlaces;
+};
+
 function App() {
   const [data, setHeatMapData] = useState([]);
 
@@ -89,15 +93,15 @@ function HeatMap({ data }) {
     };
 
     const dim = {
-      width: 1200 + padding.left + padding.right,
-      height: 500 + padding.top + padding.bottom,
+      width: 1000 + padding.left + padding.right,
+      height: 400 + padding.top + padding.bottom,
     };
 
-    const xAxisFactor = {
-      top: 0,
-      right: 0,
-      bottom: 0,
-      left: 3,
+    const axisFactor = {
+      top: 1,
+      right: 2,
+      bottom: 2,
+      left: 4.75,
     };
 
     const baseTemp = data.baseTemperature;
@@ -106,7 +110,7 @@ function HeatMap({ data }) {
     const minTemp = d3.min(data.monthlyVariance, (d) => d.variance + baseTemp);
     const maxTemp = d3.max(data.monthlyVariance, (d) => d.variance + baseTemp);
     const xUniteSize =
-      (dim.width - padding.right - padding.left * xAxisFactor.left) /
+      (dim.width - padding.right - padding.left * axisFactor.left) /
       (maxYear - minYear);
     console.log(xUniteSize);
 
@@ -155,6 +159,13 @@ function HeatMap({ data }) {
       }
     };
 
+    // Tooltip
+    let tooltip = d3
+      .select("#body")
+      .append("div")
+      .attr("id", "tooltip")
+      .attr("style", "position: absolute; opacity: 0;");
+
     // Graph Titles
     d3.select("#heatmap")
       .append("div")
@@ -175,7 +186,7 @@ function HeatMap({ data }) {
     // Scales
     const xScale = d3.scaleLinear();
     xScale.domain([minYear, maxYear]);
-    xScale.range([padding.left * xAxisFactor.left, dim.width - padding.right]);
+    xScale.range([padding.left * axisFactor.left, dim.width - padding.right]);
 
     const yScale = d3.scaleBand();
     /*
@@ -184,7 +195,10 @@ function HeatMap({ data }) {
       d3.max(data.monthlyVariance, (d) => d.month + 1),
     ]);*/
     yScale.domain([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
-    yScale.range([dim.height - padding.bottom, padding.top]);
+    yScale.range([
+      dim.height - padding.bottom * axisFactor.bottom,
+      padding.top,
+    ]);
 
     // SVG setup
     const svg = d3
@@ -207,17 +221,62 @@ function HeatMap({ data }) {
       .style("fill", (d) => {
         return getCellColor(d.variance + baseTemp, minTemp, maxTemp);
       })
-      .on("mouseover", (d, i) => {})
-      .on("mousemove", (d, i) => {})
-      .on("mouseout", (d, i) => {});
+      .on("mouseover", (d, i) => {
+        console.log("mouseover");
+      })
+      .on("mousemove", (d, i) => {
+        let temp = d.variance + baseTemp;
+        console.log("mousemove");
+
+        let content =
+          d.year +
+          " - " +
+          MONTHS[d.month - 1] +
+          "<br />" +
+          formatNum(temp, 10) +
+          "℃" +
+          "<br />" +
+          formatNum(d.variance, 10) +
+          "℃";
+
+        tooltip.transition().duration(100).style("opacity", 0.9);
+        let pos = d3
+          .select(document.getElementsByClassName("cell")[i])
+          .node()
+          .getBoundingClientRect();
+        let x = pos.x - window.pageXOffset + 10 + "px";
+        let y = pos.y - window.pageYOffset + 10 + "px";
+        tooltip
+          .html(content)
+          .style("left", x)
+          .style("top", y)
+          .style("opacity", 0.9)
+          .attr("data-year", d.year);
+      })
+      .on("mouseout", (d, i) => {
+        console.log("mouseout");
+
+        tooltip.transition().duration(100).style("opacity", 0);
+      });
 
     // X-Axis
     const xAxis = d3.axisBottom(xScale).tickFormat(d3.format("d"));
     svg
       .append("g")
       .attr("id", "x-axis")
-      .attr("transform", "translate(0," + (dim.height - padding.bottom) + ")")
+      .attr(
+        "transform",
+        "translate(0," + (dim.height - padding.bottom * axisFactor.bottom) + ")"
+      )
       .call(xAxis);
+    svg
+      .append("text")
+      .style("font-size", "0.75em")
+      .attr("id", "x-axis-title")
+      .attr("x", dim.width / 2 + padding.right * axisFactor.right)
+      .attr("y", dim.height - padding.bottom * (axisFactor.bottom - 1))
+      .style("text-anchor", "middle")
+      .text("Years");
 
     // Y-Axis
     const yAxis = d3.axisLeft(yScale).tickFormat((d, i) => {
@@ -226,14 +285,33 @@ function HeatMap({ data }) {
     svg
       .append("g")
       .attr("id", "y-axis")
-      .attr("transform", "translate(" + padding.left * xAxisFactor.left + ",0)")
+      .attr("transform", "translate(" + padding.left * axisFactor.left + ",0)")
       .call(yAxis);
+    svg
+      .append("text")
+      .style("font-size", "0.75em")
+      .attr("id", "y-axis-title")
+      .attr("x", dim.width / 2)
+      .attr("y", -1 * (axisFactor.left + axisFactor.left) * padding.left)
+      .style("text-anchor", "middle")
+      .attr(
+        "transform",
+        "rotate(-90," + dim.width / 2 + "," + dim.height / 2 + ")"
+      )
+      .text("Months");
     d3.selectAll("#y-axis .tick line").each(() => {
       d3.select(this).attr(
         "transform",
         "translate(0," + yScale.bandwidth / 2 + ")"
       );
     });
+
+    // Legend
+    svg
+      .append("g")
+      .attr("id", "legend")
+      .attr("x", dim.width / 2)
+      .attr("y", -1 * (axisFactor.left + axisFactor.left) * padding.left);
   };
 
   return (
