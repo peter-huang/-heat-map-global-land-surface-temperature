@@ -334,10 +334,12 @@ function HeatMap({ data }) {
     heatScale.range([padding.left, padding.left * 2 * HEAT_COLOR.length]);
     const heatAxis = d3
       .axisBottom(heatScale)
-      .ticks(HEAT_COLOR.length + 1)
+      .ticks(HEAT_COLOR.length)
       .tickValues(tempLegend())
-      .tickFormat((d) => {
-        return d3.format("1.1f")(d) + "℃";
+      .tickFormat((d, i) => {
+        if (i > 0 && i < HEAT_COLOR.length) {
+          return d3.format("1.1f")(d) + "℃";
+        }
       });
 
     // Add legend with scale and axis
