@@ -115,45 +115,43 @@ function HeatMap({ data }) {
 
     const getCellColor = (curTemp, minTemp, maxTemp) => {
       const increment = maxTemp / 9;
+      console.log(increment);
 
-      if (curTemp >= minTemp && curTemp < minTemp + increment) {
+      if (curTemp >= 0 && curTemp < minTemp) {
         return HEAT_COLOR[0];
+      } else if (curTemp >= minTemp && curTemp < minTemp + increment) {
+        return HEAT_COLOR[1];
       } else if (
-        curTemp >= minTemp + increment &&
+        curTemp >= minTemp + increment * 1 &&
         curTemp < minTemp + increment * 2
       ) {
-        return HEAT_COLOR[1];
+        return HEAT_COLOR[2];
       } else if (
         curTemp >= minTemp + increment * 2 &&
         curTemp < minTemp + increment * 3
       ) {
-        return HEAT_COLOR[2];
+        return HEAT_COLOR[3];
       } else if (
         curTemp >= minTemp + increment * 3 &&
         curTemp < minTemp + increment * 4
       ) {
-        return HEAT_COLOR[3];
+        return HEAT_COLOR[4];
       } else if (
         curTemp >= minTemp + increment * 4 &&
         curTemp < minTemp + increment * 5
       ) {
-        return HEAT_COLOR[4];
+        return HEAT_COLOR[5];
       } else if (
         curTemp >= minTemp + increment * 5 &&
         curTemp < minTemp + increment * 6
       ) {
-        return HEAT_COLOR[5];
+        return HEAT_COLOR[6];
       } else if (
         curTemp >= minTemp + increment * 6 &&
         curTemp < minTemp + increment * 7
       ) {
-        return HEAT_COLOR[6];
-      } else if (
-        curTemp >= minTemp + increment * 7 &&
-        curTemp < minTemp + increment * 8
-      ) {
         return HEAT_COLOR[7];
-      } else if (curTemp >= maxTemp) {
+      } else if (curTemp >= minTemp + increment * 7) {
         return HEAT_COLOR[8];
       }
     };
@@ -327,7 +325,6 @@ function HeatMap({ data }) {
       .ticks(HEAT_COLOR.length + 1)
       .tickValues(tempLegend())
       .tickFormat((d) => {
-        console.log(d);
         return d3.format("1.1f")(d) + "℃";
       });
 
