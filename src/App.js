@@ -234,10 +234,12 @@ function HeatMap({ data }) {
       .attr("y", (d) => yScale(d.month))
       .attr("width", xUniteSize + "px")
       .attr("height", yScale.bandwidth)
-
       .style("fill", (d) => {
         return getCellColor(d.variance + baseTemp, minTemp, maxTemp);
       })
+      .attr("data-month", (d) => MONTHS[d.month - 1])
+      .attr("data-year", (d) => d.year)
+      .attr("data-temp", (d) => d.variance + baseTemp)
       .on("mouseover", (d, i) => {
         //onsole.log("mouseover");
       })
