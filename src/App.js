@@ -33,8 +33,70 @@ const HEAT_COLOR = [
   "#EA0909",
 ];
 
-const formatNum = (num, decimalPlaces) => {
+/*
+ * Format number to specific decimal places, adds + or - depending on flag
+ *
+ * @param num - number to be formatted
+ * @param decimalPlaces - number of decimals
+ * @param flag - boolean to determine to add + or - in front
+ */
+const formatNum = (num, decimalPlaces, flag = false) => {
+  if (flag) {
+    if (num >= 0) {
+      return "+" + Math.floor(num * decimalPlaces) / decimalPlaces;
+    }
+  }
+
   return Math.floor(num * decimalPlaces) / decimalPlaces;
+};
+
+/*
+ * Determines the color of the cell in the heatmap
+ *
+ * @param curTemp - tempearture to be evaluated
+ * @param minTemp - minimum temperature
+ * @param maxTemp - maximum temperature
+ */
+const getCellColor = (curTemp, minTemp, maxTemp) => {
+  const increment = maxTemp / 9;
+
+  if (curTemp >= 0 && curTemp < minTemp) {
+    return HEAT_COLOR[0];
+  } else if (curTemp >= minTemp && curTemp < minTemp + increment) {
+    return HEAT_COLOR[1];
+  } else if (
+    curTemp >= minTemp + increment * 1 &&
+    curTemp < minTemp + increment * 2
+  ) {
+    return HEAT_COLOR[2];
+  } else if (
+    curTemp >= minTemp + increment * 2 &&
+    curTemp < minTemp + increment * 3
+  ) {
+    return HEAT_COLOR[3];
+  } else if (
+    curTemp >= minTemp + increment * 3 &&
+    curTemp < minTemp + increment * 4
+  ) {
+    return HEAT_COLOR[4];
+  } else if (
+    curTemp >= minTemp + increment * 4 &&
+    curTemp < minTemp + increment * 5
+  ) {
+    return HEAT_COLOR[5];
+  } else if (
+    curTemp >= minTemp + increment * 5 &&
+    curTemp < minTemp + increment * 6
+  ) {
+    return HEAT_COLOR[6];
+  } else if (
+    curTemp >= minTemp + increment * 6 &&
+    curTemp < minTemp + increment * 7
+  ) {
+    return HEAT_COLOR[7];
+  } else if (curTemp >= minTemp + increment * 7) {
+    return HEAT_COLOR[8];
+  }
 };
 
 function App() {
@@ -93,7 +155,7 @@ function HeatMap({ data }) {
     };
 
     const dim = {
-      width: 1000 + padding.left + padding.right,
+      width: 1200 + padding.left + padding.right,
       height: 400 + padding.top + padding.bottom,
     };
 
@@ -112,49 +174,6 @@ function HeatMap({ data }) {
     const xUniteSize =
       (dim.width - padding.right - padding.left * axisFactor.left) /
       (maxYear - minYear);
-
-    const getCellColor = (curTemp, minTemp, maxTemp) => {
-      const increment = maxTemp / 9;
-      console.log(increment);
-
-      if (curTemp >= 0 && curTemp < minTemp) {
-        return HEAT_COLOR[0];
-      } else if (curTemp >= minTemp && curTemp < minTemp + increment) {
-        return HEAT_COLOR[1];
-      } else if (
-        curTemp >= minTemp + increment * 1 &&
-        curTemp < minTemp + increment * 2
-      ) {
-        return HEAT_COLOR[2];
-      } else if (
-        curTemp >= minTemp + increment * 2 &&
-        curTemp < minTemp + increment * 3
-      ) {
-        return HEAT_COLOR[3];
-      } else if (
-        curTemp >= minTemp + increment * 3 &&
-        curTemp < minTemp + increment * 4
-      ) {
-        return HEAT_COLOR[4];
-      } else if (
-        curTemp >= minTemp + increment * 4 &&
-        curTemp < minTemp + increment * 5
-      ) {
-        return HEAT_COLOR[5];
-      } else if (
-        curTemp >= minTemp + increment * 5 &&
-        curTemp < minTemp + increment * 6
-      ) {
-        return HEAT_COLOR[6];
-      } else if (
-        curTemp >= minTemp + increment * 6 &&
-        curTemp < minTemp + increment * 7
-      ) {
-        return HEAT_COLOR[7];
-      } else if (curTemp >= minTemp + increment * 7) {
-        return HEAT_COLOR[8];
-      }
-    };
 
     // Tooltip
     const tooltip = d3
@@ -215,6 +234,7 @@ function HeatMap({ data }) {
       .attr("y", (d) => yScale(d.month))
       .attr("width", xUniteSize + "px")
       .attr("height", yScale.bandwidth)
+
       .style("fill", (d) => {
         return getCellColor(d.variance + baseTemp, minTemp, maxTemp);
       })
@@ -233,7 +253,7 @@ function HeatMap({ data }) {
           formatNum(temp, 10) +
           "℃" +
           "<br />" +
-          formatNum(d.variance, 10) +
+          formatNum(d.variance, 10, true) +
           "℃";
 
         tooltip.transition().duration(100).style("opacity", 0.9);
@@ -291,7 +311,7 @@ function HeatMap({ data }) {
       .style("font-weight", "bold")
       .attr("id", "y-axis-title")
       .attr("x", dim.width / 2)
-      .attr("y", -1 * (axisFactor.left + axisFactor.left) * padding.left)
+      .attr("y", -1 * (axisFactor.left * 2.75) * padding.left)
       .style("text-anchor", "middle")
       .attr(
         "transform",
