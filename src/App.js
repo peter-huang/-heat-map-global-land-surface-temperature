@@ -28,8 +28,8 @@ const HEAT_COLOR = [
   "#BCD2E8",
   "#fff8d4",
   "#fac150",
-  "#f2a268",
   "#ff7714",
+  "#fa4f00",
   "#EA0909",
 ];
 
@@ -99,7 +99,7 @@ function HeatMap({ data }) {
 
     const axisFactor = {
       top: 1,
-      right: 2,
+      right: 5,
       bottom: 2,
       left: 4.75,
     };
@@ -112,7 +112,6 @@ function HeatMap({ data }) {
     const xUniteSize =
       (dim.width - padding.right - padding.left * axisFactor.left) /
       (maxYear - minYear);
-    console.log(xUniteSize);
 
     const getCellColor = (curTemp, minTemp, maxTemp) => {
       const increment = maxTemp / 9;
@@ -160,7 +159,7 @@ function HeatMap({ data }) {
     };
 
     // Tooltip
-    let tooltip = d3
+    const tooltip = d3
       .select("#body")
       .append("div")
       .attr("id", "tooltip")
@@ -222,11 +221,11 @@ function HeatMap({ data }) {
         return getCellColor(d.variance + baseTemp, minTemp, maxTemp);
       })
       .on("mouseover", (d, i) => {
-        console.log("mouseover");
+        //onsole.log("mouseover");
       })
       .on("mousemove", (d, i) => {
         let temp = d.variance + baseTemp;
-        console.log("mousemove");
+        //console.log("mousemove");
 
         let content =
           d.year +
@@ -254,7 +253,7 @@ function HeatMap({ data }) {
           .attr("data-year", d.year);
       })
       .on("mouseout", (d, i) => {
-        console.log("mouseout");
+        //console.log("mouseout");
 
         tooltip.transition().duration(100).style("opacity", 0);
       });
@@ -271,7 +270,8 @@ function HeatMap({ data }) {
       .call(xAxis);
     svg
       .append("text")
-      .style("font-size", "0.75em")
+      .style("font-size", "1em")
+      .style("font-weight", "bold")
       .attr("id", "x-axis-title")
       .attr("x", dim.width / 2 + padding.right * axisFactor.right)
       .attr("y", dim.height - padding.bottom * (axisFactor.bottom - 1))
@@ -289,7 +289,8 @@ function HeatMap({ data }) {
       .call(yAxis);
     svg
       .append("text")
-      .style("font-size", "0.75em")
+      .style("font-size", "1em")
+      .style("font-weight", "bold")
       .attr("id", "y-axis-title")
       .attr("x", dim.width / 2)
       .attr("y", -1 * (axisFactor.left + axisFactor.left) * padding.left)
@@ -306,12 +307,60 @@ function HeatMap({ data }) {
       );
     });
 
-    // Legend
-    svg
+    // Legend Data
+    const tempLegend = () => {
+      const arr = [];
+      const t = maxTemp / HEAT_COLOR.length;
+
+      for (let i = 0; i <= HEAT_COLOR.length; i++) {
+        arr.push(i * t);
+      }
+      return arr;
+    };
+
+    // Legend Scale and Axis setup
+    const heatScale = d3.scaleLinear();
+    heatScale.domain([0, maxTemp]);
+    heatScale.range([padding.left, padding.left * 2 * HEAT_COLOR.length]);
+    const heatAxis = d3
+      .axisBottom(heatScale)
+      .ticks(HEAT_COLOR.length + 1)
+      .tickValues(tempLegend())
+      .tickFormat((d) => {
+        console.log(d);
+        return d3.format("1.1f")(d) + "℃";
+      });
+
+    // Add legend with scale and axis
+    const legend = svg
       .append("g")
       .attr("id", "legend")
-      .attr("x", dim.width / 2)
-      .attr("y", -1 * (axisFactor.left + axisFactor.left) * padding.left);
+      .style("font-size", "0.75em")
+      .style("font-weight", "bold")
+      .attr(
+        "transform",
+        "translate(" +
+          padding.left * (axisFactor.left - 1) +
+          "," +
+          (dim.height -
+            padding.bottom * (axisFactor.bottom - 1) +
+            padding.left) +
+          ")"
+      )
+      .call(heatAxis);
+
+    // Legend - scale the rects
+    for (let i = 0; i < HEAT_COLOR.length; i++) {
+      legend
+        .append("rect")
+        .attr("width", padding.left * 1.89)
+        .attr("height", padding.left * 2)
+        .attr("x", padding.left * 1.89 * i + padding.left)
+        .attr("y", -1 * padding.left * 2)
+        .style("fill", HEAT_COLOR[i])
+        .style("stroke-width", 1)
+        .style("stroke", "black");
+    }
   };
 
   return (
