@@ -174,6 +174,7 @@ function HeatMap({ data }) {
     const xUniteSize =
       (dim.width - padding.right - padding.left * axisFactor.left) /
       (maxYear - minYear);
+    const months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 
     // Tooltip
     const tooltip = d3
@@ -201,16 +202,11 @@ function HeatMap({ data }) {
 
     // Scales
     const xScale = d3.scaleLinear();
-    xScale.domain([minYear, maxYear]);
+    xScale.domain([minYear, maxYear + 1]);
     xScale.range([padding.left * axisFactor.left, dim.width - padding.right]);
 
     const yScale = d3.scaleBand();
-    /*
-    yScale.domain([
-      d3.min(data.monthlyVariance, (d) => d.month),
-      d3.max(data.monthlyVariance, (d) => d.month + 1),
-    ]);*/
-    yScale.domain([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+    yScale.domain(months);
     yScale.range([
       dim.height - padding.bottom * axisFactor.bottom,
       padding.top,
@@ -237,7 +233,7 @@ function HeatMap({ data }) {
       .style("fill", (d) => {
         return getCellColor(d.variance + baseTemp, minTemp, maxTemp);
       })
-      .attr("data-month", (d) => MONTHS[d.month - 1])
+      .attr("data-month", (d) => d.month - 1)
       .attr("data-year", (d) => d.year)
       .attr("data-temp", (d) => d.variance + baseTemp)
       .on("mouseover", (d, i) => {
@@ -300,7 +296,7 @@ function HeatMap({ data }) {
 
     // Y-Axis
     const yAxis = d3.axisLeft(yScale).tickFormat((d, i) => {
-      return MONTHS[i - 1];
+      return MONTHS[i];
     });
     svg
       .append("g")
@@ -320,12 +316,6 @@ function HeatMap({ data }) {
         "rotate(-90," + dim.width / 2 + "," + dim.height / 2 + ")"
       )
       .text("Months");
-    d3.selectAll("#y-axis .tick line").each(() => {
-      d3.select(this).attr(
-        "transform",
-        "translate(0," + yScale.bandwidth / 2 + ")"
-      );
-    });
 
     // Legend Data
     const tempLegend = () => {
